@@ -10,6 +10,7 @@ public class PlayerMovement : MonoBehaviour
     public float AirMult;
     public float MaxRunSpeed;
     public float FallSpeed;
+    public float wallSlideSpeed;
     public float FallAccel;
     public float JumpSpeed;
     public float dashSpeed;
@@ -21,7 +22,9 @@ public class PlayerMovement : MonoBehaviour
     bool dashNextFrame = false;
     Vector2 dashDirection;
 
-    public bool onGround;
+    bool onGround = true;
+    bool onWall = false;
+    int wallDirection = 0;
     Rigidbody2D rb;
 
 
@@ -47,10 +50,12 @@ public class PlayerMovement : MonoBehaviour
     // FixedUpdate is called 10x per second
     void FixedUpdate()
     {
-        // Default movement
-        MoveHorizontal();
+        
+        CheckGrounded(); // Update state
+        CheckWall();
+        
+        MoveHorizontal(); // Default movement
         MoveVertical();
-        CheckGrounded();
         CheckBuffer();
     }
 
@@ -78,6 +83,12 @@ public class PlayerMovement : MonoBehaviour
 
         }
         CheckBuffer();
+    }
+
+    void CheckWall()
+    {
+        wallDirection = isOnWall();
+        onWall = wallDirection != 0;
     }
 
     // Check whether an input is queued
@@ -170,7 +181,11 @@ public class PlayerMovement : MonoBehaviour
     void MoveVertical()
     {
         float speedY = rb.velocity.y;
-        speedY = Mathf.Lerp(speedY, FallSpeed, FallAccel * Time.fixedDeltaTime); // 
+        speedY = Mathf.Lerp(speedY, -FallSpeed, FallAccel * Time.fixedDeltaTime);
+        if (onWall && speedY < -wallSlideSpeed)
+        {
+            speedY = -wallSlideSpeed;
+        }
         rb.velocity = new Vector2(rb.velocity.x, speedY);
     }
 
@@ -200,5 +215,20 @@ public class PlayerMovement : MonoBehaviour
         RaycastHit2D ray = Physics2D.BoxCast(new Vector2(transform.position.x, transform.position.y-.25f), 
             new Vector2(.8f, .5f), 0f, Vector2.down, .1f, LayerMask.GetMask("Map"));
         return ray.transform != null;
+    }
+
+    int isOnWall()
+    {
+        RaycastHit2D left = Physics2D.Raycast(transform.position, Vector2.left, .6f, LayerMask.GetMask("Map"));
+        RaycastHit2D right = Physics2D.Raycast(transform.position, Vector2.right, .6f, LayerMask.GetMask("Map"));
+        int value = 0;
+        if (left.transform != null)
+        {
+            value -= 1;
+        } if (right.transform != null)
+        {
+            value += 1;
+        }
+        return value;
     }
 }

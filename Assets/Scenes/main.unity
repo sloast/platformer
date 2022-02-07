@@ -204,12 +204,12 @@ MonoBehaviour:
   RunReduce: 3
   AirMult: 0.7
   MaxRunSpeed: 10
-  FallSpeed: -18
+  FallSpeed: 18
+  wallSlideSpeed: 5
   FallAccel: 1.4
   JumpSpeed: 17
-  canJump: 0
-  canAbility: 0
-  onGround: 0
+  dashSpeed: 20
+  maxJumpBuffer: 0.1
 --- !u!212 &504573952
 SpriteRenderer:
   m_ObjectHideFlags: 0
