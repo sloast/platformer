@@ -11,6 +11,8 @@ public class PlayerMovement : MonoBehaviour
     public float MaxRunSpeed;
     public float FallSpeed;
     public float wallSlideSpeed;
+    public float wallHopSpeed;
+    public float climbSpeed;
     public float FallAccel;
     public float JumpSpeed;
     public float dashSpeed;
@@ -25,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     bool onGround = true;
     bool onWall = false;
     int wallDirection = 0;
+    bool climbing = false;
     Rigidbody2D rb;
 
 
@@ -87,8 +90,20 @@ public class PlayerMovement : MonoBehaviour
 
     void CheckWall()
     {
+        int temp = wallDirection;
         wallDirection = isOnWall();
         onWall = wallDirection != 0;
+        if (temp != 0 && !onWall && isOnWallTop(temp))
+        {
+            HopWall();
+        }
+        if (Input.GetKey("z") && onWall)
+        {
+            climbing = true;
+
+        } else {
+            climbing = false;
+        }
     }
 
     // Check whether an input is queued
@@ -180,6 +195,11 @@ public class PlayerMovement : MonoBehaviour
     // Controls gravity
     void MoveVertical()
     {
+        if (climbing)
+        {
+            MoveVertical_climbing();
+            return;
+        }
         float speedY = rb.velocity.y;
         speedY = Mathf.Lerp(speedY, -FallSpeed, FallAccel * Time.fixedDeltaTime);
         if (onWall && speedY < -wallSlideSpeed)
@@ -189,8 +209,20 @@ public class PlayerMovement : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, speedY);
     }
 
+    void MoveVertical_climbing()
+    {
+        float speedY = GetAxis("y") * climbSpeed;
+        rb.velocity = new Vector2(rb.velocity.x, speedY);
+    }
+
+    // default movement
     void MoveHorizontal()
     {
+        if (climbing)
+        {
+            MoveHorizontal_climbing();
+            return;
+        }
         int inputX = GetAxis("x");
         float speedX = rb.velocity.x;
         float mult = 1;
@@ -207,6 +239,12 @@ public class PlayerMovement : MonoBehaviour
             speedX = Mathf.Lerp(speedX, inputX * max, RunAccelerate * mult * Time.fixedDeltaTime);
         }
 
+        rb.velocity = new Vector2(speedX, rb.velocity.y);
+    }
+
+    void MoveHorizontal_climbing()
+    {
+        float speedX = wallDirection * .2f;
         rb.velocity = new Vector2(speedX, rb.velocity.y);
     }
 
@@ -230,5 +268,20 @@ public class PlayerMovement : MonoBehaviour
             value += 1;
         }
         return value;
+    }
+
+    bool isOnWallTop(float side)
+    {
+        Vector3 offset = new Vector3(0, -.3f, 0);
+        Vector2 direction = side == 1 ? Vector2.right : Vector2.left;
+        RaycastHit2D ray = Physics2D.Raycast(transform.position + offset, direction, .6f, LayerMask.GetMask("Map"));
+        return ray.transform != null;
+    }
+
+    // Jump up onto a platform from the wall below
+    void HopWall()
+    {
+        float speedY = wallHopSpeed;
+        rb.velocity = new Vector2(rb.velocity.x, speedY);
     }
 }

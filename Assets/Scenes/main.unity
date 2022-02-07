@@ -206,6 +206,8 @@ MonoBehaviour:
   MaxRunSpeed: 10
   FallSpeed: 18
   wallSlideSpeed: 5
+  wallHopSpeed: 7
+  climbSpeed: 5
   FallAccel: 1.4
   JumpSpeed: 17
   dashSpeed: 20
