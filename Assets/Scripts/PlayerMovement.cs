@@ -13,9 +13,10 @@ public class PlayerMovement : MonoBehaviour
     public float wallSlideSpeed;
     public float wallHopSpeed;
     public float climbSpeed;
-    public float FallAccel;
+    public float fallAccel;
     public float JumpSpeed;
     public float dashSpeed;
+    public Vector2 wallJumpSpeed;
     bool canJump = true;
     float leftGroundBuffer = 0f;
     bool canAbility = true;
@@ -28,6 +29,8 @@ public class PlayerMovement : MonoBehaviour
     bool onWall = false;
     int wallDirection = 0;
     bool climbing = false;
+    bool canClimbDown = true;
+    bool canMoveHorizontal = true;
     Rigidbody2D rb;
 
 
@@ -57,7 +60,7 @@ public class PlayerMovement : MonoBehaviour
         CheckGrounded(); // Update state
         CheckWall();
         
-        MoveHorizontal(); // Default movement
+        if (canMoveHorizontal) { MoveHorizontal(); } // Default movement
         MoveVertical();
         CheckBuffer();
     }
@@ -85,7 +88,6 @@ public class PlayerMovement : MonoBehaviour
             }
 
         }
-        CheckBuffer();
     }
 
     void CheckWall()
@@ -100,8 +102,14 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey("z") && onWall)
         {
             climbing = true;
+            if (isOnWallBottom(wallDirection))
+            {
+                canClimbDown = false;
+            } else if (!canClimbDown) {
+                canClimbDown = true;
+            }
 
-        } else {
+        } else if (climbing) {
             climbing = false;
         }
     }
@@ -119,6 +127,8 @@ public class PlayerMovement : MonoBehaviour
             if (canJump)
             {
                 Jump();
+            } else if (onWall) {
+                WallJump();
             } else {
                 jumpBuffer -= Time.fixedDeltaTime;
             }
@@ -137,6 +147,15 @@ public class PlayerMovement : MonoBehaviour
         canJump = false;
         float speed_y = JumpSpeed;
         rb.velocity = new Vector2(rb.velocity.x, speed_y);
+    }
+
+    void WallJump()
+    {
+        jumpBuffer = 0f;
+        canJump = false;
+        float speedX = wallJumpSpeed.x * -wallDirection;
+        float speedY = wallJumpSpeed.y;
+        rb.velocity = new Vector2(speedX, speedY);
     }
 
     // Get arrow keys input in a more useful format
@@ -201,7 +220,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
         float speedY = rb.velocity.y;
-        speedY = Mathf.Lerp(speedY, -FallSpeed, FallAccel * Time.fixedDeltaTime);
+        speedY = Mathf.Lerp(speedY, -FallSpeed, fallAccel * Time.fixedDeltaTime);
         if (onWall && speedY < -wallSlideSpeed)
         {
             speedY = -wallSlideSpeed;
@@ -212,6 +231,10 @@ public class PlayerMovement : MonoBehaviour
     void MoveVertical_climbing()
     {
         float speedY = GetAxis("y") * climbSpeed;
+        if (!canClimbDown && speedY < 0)
+        {
+            speedY = 0;
+        }
         rb.velocity = new Vector2(rb.velocity.x, speedY);
     }
 
@@ -276,6 +299,14 @@ public class PlayerMovement : MonoBehaviour
         Vector2 direction = side == 1 ? Vector2.right : Vector2.left;
         RaycastHit2D ray = Physics2D.Raycast(transform.position + offset, direction, .6f, LayerMask.GetMask("Map"));
         return ray.transform != null;
+    }
+
+    bool isOnWallBottom(float side)
+    {
+        Vector3 offset = new Vector3(0, -.5f, 0);
+        Vector2 direction = side == 1 ? Vector2.right : Vector2.left;
+        RaycastHit2D ray = Physics2D.Raycast(transform.position + offset, direction, .6f, LayerMask.GetMask("Map"));
+        return ray.transform == null;
     }
 
     // Jump up onto a platform from the wall below
