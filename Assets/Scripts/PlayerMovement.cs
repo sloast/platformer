@@ -31,13 +31,17 @@ public class PlayerMovement : MonoBehaviour
     bool climbing = false;
     bool canClimbDown = true;
     bool canMoveHorizontal = true;
+    Vector2 startCoordinates;
     Rigidbody2D rb;
+    SpriteRenderer rend;
 
 
     void Start()
     {
         transform.position = new Vector3(-12.5f, -6.5f, 0f);
+        startCoordinates = new Vector3(-12.5f, -6.5f, 0f);
         rb = GetComponent<Rigidbody2D>();
+        rend = GetComponent<SpriteRenderer>();
     }
 
     private void Update()
@@ -63,6 +67,25 @@ public class PlayerMovement : MonoBehaviour
         if (canMoveHorizontal) { MoveHorizontal(); } // Default movement
         MoveVertical();
         CheckBuffer();
+        SetDirection();
+    }
+
+    void SetDirection()
+    {
+        float speedX = rb.velocity.x;
+        if (speedX > .1f && rend.flipX)
+        {
+            rend.flipX = false;
+        } else if (speedX < -.1f && !rend.flipX)
+        {
+            rend.flipX = true;
+        }
+    }
+
+    void onDied()
+    {
+        transform.position = startCoordinates;
+        rb.velocity = Vector3.zero;
     }
 
     void CheckGrounded()
@@ -314,5 +337,13 @@ public class PlayerMovement : MonoBehaviour
     {
         float speedY = wallHopSpeed;
         rb.velocity = new Vector2(rb.velocity.x, speedY);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.tag == "Obstacles")
+        {
+            onDied();
+        }
     }
 }
