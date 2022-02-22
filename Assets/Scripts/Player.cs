@@ -31,9 +31,11 @@ public class Player : MonoBehaviour
     bool climbing = false;
     bool canClimbDown = true;
     bool canMoveHorizontal = true;
+    bool moveLocked = false;
     Vector2 startCoordinates;
     Rigidbody2D rb;
     SpriteRenderer rend;
+    GameController gc;
 
 
     void Start()
@@ -42,6 +44,7 @@ public class Player : MonoBehaviour
         startCoordinates = new Vector3(-12.5f, -6.5f, 0f);
         rb = GetComponent<Rigidbody2D>();
         rend = GetComponent<SpriteRenderer>();
+        gc = GameObject.FindWithTag("GameController").GetComponent<GameController>();
     }
 
     private void Update()
@@ -64,7 +67,7 @@ public class Player : MonoBehaviour
         CheckGrounded(); // Update state
         CheckWall();
         
-        if (canMoveHorizontal) { MoveHorizontal(); } // Default movement
+        if (canMoveHorizontal && !moveLocked) { MoveHorizontal(); } // Default movement
         MoveVertical();
         CheckBuffer();
         SetDirection();
@@ -166,6 +169,10 @@ public class Player : MonoBehaviour
 
     void Jump()
     {
+        if (moveLocked)
+        {
+            return;
+        }
         jumpBuffer = 0f;
         canJump = false;
         float speed_y = JumpSpeed;
@@ -174,6 +181,10 @@ public class Player : MonoBehaviour
 
     void WallJump()
     {
+        if (moveLocked)
+        {
+            return;
+        }
         jumpBuffer = 0f;
         canJump = false;
         float speedX = wallJumpSpeed.x * -wallDirection;
@@ -225,6 +236,10 @@ public class Player : MonoBehaviour
 
     void Dash()
     {
+        if (moveLocked)
+        {
+            return;
+        }
         dashNextFrame = false;
         if (!canAbility) { return; }
         canAbility = false; // Stop the player from using until landing
@@ -341,9 +356,32 @@ public class Player : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Obstacles")
+        if (collision.CompareTag("Obstacles"))
         {
             onDied();
         }
+        if (collision.CompareTag("TransitionTrigger"))
+        {
+            gc.ChangeLevel(collision.gameObject);
+            LockMovement();
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        UnlockMovement();
+    }
+
+    void LockMovement()
+    {
+        moveLocked = true;
+        Vector3 v = rb.velocity;
+        v.x = v.x > 0 ? MaxRunSpeed : -MaxRunSpeed;
+        rb.velocity = v;
+    }
+
+    void UnlockMovement()
+    {
+        moveLocked = false;
     }
 }
