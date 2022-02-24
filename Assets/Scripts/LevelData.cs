@@ -4,16 +4,6 @@ using UnityEngine;
 
 public class LevelData : MonoBehaviour
 {
-    public Vector3 startPos;
+    public Vector2 startPos;
     public float cameraSize;
-
-    void Start()
-    {
-        
-    }
-
-    void Update()
-    {
-        
-    }
 }

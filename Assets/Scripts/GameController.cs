@@ -28,5 +28,6 @@ public class GameController : MonoBehaviour
         LevelTransition lt = trigger.gameObject.GetComponent<LevelTransition>();
         current_level = current_level == lt.a ? lt.b : lt.a;
         camera.SetTarget(levels[current_level].gameObject.transform.position);
+        player.SetStartCoordinates(levels[current_level].startPos);
     }
 }

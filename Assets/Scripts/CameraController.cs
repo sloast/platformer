@@ -7,6 +7,9 @@ public class CameraController : MonoBehaviour
     Vector3 target;
     public float cameraSpeed = 5;
 
+    float shakeIntensity = 1f;
+    float shakeDuration = 0f;
+
     void Start()
     {
         target = new Vector3(-.04f, .45f, -10f);
@@ -17,6 +20,10 @@ public class CameraController : MonoBehaviour
     {
         if ((target - transform.position).magnitude > .01f){
             Approach(target);
+        }
+        if (shakeDuration > 0f)
+        {
+            shakeDuration -= Time.deltaTime;
         }
     }
 
@@ -30,5 +37,10 @@ public class CameraController : MonoBehaviour
     public void SetTarget(Vector3 newTarget)
     {
         target = newTarget;
+    }
+
+    public void ShakeScreen(float speed, float duration)
+    {
+
     }
 }

@@ -32,6 +32,8 @@ public class Player : MonoBehaviour
     bool canClimbDown = true;
     bool canMoveHorizontal = true;
     bool moveLocked = false;
+    bool noGravity = false;
+    public bool died = false;
     Vector2 startCoordinates;
     Rigidbody2D rb;
     SpriteRenderer rend;
@@ -66,9 +68,8 @@ public class Player : MonoBehaviour
         
         CheckGrounded(); // Update state
         CheckWall();
-        
-        if (canMoveHorizontal && !moveLocked) { MoveHorizontal(); } // Default movement
-        MoveVertical();
+        if (!moveLocked && canMoveHorizontal) { MoveHorizontal(); } // Default movement
+        if (!noGravity) { MoveVertical(); }
         CheckBuffer();
         SetDirection();
     }
@@ -87,8 +88,19 @@ public class Player : MonoBehaviour
 
     void onDied()
     {
+        LockMovement();
+        died = true;
+        Invoke("Respawn", 1);
+    }
+
+    void Respawn()
+    {
         transform.position = startCoordinates;
         rb.velocity = Vector3.zero;
+        died = false;
+        UnlockMovement();
+        ResetBuffer();
+        ResetAbilities();
     }
 
     void CheckGrounded()
@@ -159,6 +171,12 @@ public class Player : MonoBehaviour
                 jumpBuffer -= Time.fixedDeltaTime;
             }
         }
+    }
+
+    void ResetBuffer()
+    {
+        dashNextFrame = false;
+        jumpBuffer = 0;
     }
 
     // Queues a jump to be executed on the next FixedUpdate, or when the player next touches the ground.
@@ -363,7 +381,10 @@ public class Player : MonoBehaviour
         if (collision.CompareTag("TransitionTrigger"))
         {
             gc.ChangeLevel(collision.gameObject);
-            LockMovement();
+            ForcedMovement();
+            noGravity = false;
+            Vector3 vel = Vector3.right;
+            rb.velocity = rb.velocity.x > 0 ? vel * MaxRunSpeed : vel * -MaxRunSpeed;
         }
     }
 
@@ -375,13 +396,27 @@ public class Player : MonoBehaviour
     void LockMovement()
     {
         moveLocked = true;
-        Vector3 v = rb.velocity;
-        v.x = v.x > 0 ? MaxRunSpeed : -MaxRunSpeed;
-        rb.velocity = v;
+        noGravity = true;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.velocity = Vector2.zero;
+    }
+
+    void ForcedMovement() // LockedMovement but with physics enabled
+    {
+        moveLocked = true;
+        noGravity = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
     }
 
     void UnlockMovement()
     {
         moveLocked = false;
+        noGravity = false;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+    }
+
+    public void SetStartCoordinates(Vector2 coords)
+    {
+        startCoordinates = coords;
     }
 }
