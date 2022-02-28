@@ -38,6 +38,7 @@ public class Player : MonoBehaviour
     Rigidbody2D rb;
     SpriteRenderer rend;
     GameController gc;
+    Animator ani;
 
 
     void Start()
@@ -47,6 +48,7 @@ public class Player : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rend = GetComponent<SpriteRenderer>();
         gc = GameObject.FindWithTag("GameController").GetComponent<GameController>();
+        ani = GetComponent<Animator>();
     }
 
     private void Update()
@@ -65,13 +67,19 @@ public class Player : MonoBehaviour
     // FixedUpdate is called 10x per second
     void FixedUpdate()
     {
-        
+        UpdateAnimator();
         CheckGrounded(); // Update state
         CheckWall();
         if (!moveLocked && canMoveHorizontal) { MoveHorizontal(); } // Default movement
         if (!noGravity) { MoveVertical(); }
         CheckBuffer();
         SetDirection();
+        
+    }
+
+    void UpdateAnimator()
+    {
+        ani.SetFloat("x_speed", Mathf.Abs(rb.velocity.x));
     }
 
     void SetDirection()
@@ -329,15 +337,18 @@ public class Player : MonoBehaviour
 
     bool isGrounded()
     {
-        RaycastHit2D ray = Physics2D.BoxCast(new Vector2(transform.position.x, transform.position.y-.25f), 
-            new Vector2(.8f, .5f), 0f, Vector2.down, .1f, LayerMask.GetMask("Map"));
+        RaycastHit2D ray = Physics2D.BoxCast(new Vector2(transform.position.x, transform.position.y-.5f), 
+            new Vector2(.8f, .6f), 0f, Vector2.down, .4f, LayerMask.GetMask("Map"));
         return ray.transform != null;
     }
 
     int isOnWall()
     {
-        RaycastHit2D left = Physics2D.Raycast(transform.position, Vector2.left, .6f, LayerMask.GetMask("Map"));
-        RaycastHit2D right = Physics2D.Raycast(transform.position, Vector2.right, .6f, LayerMask.GetMask("Map"));
+        Vector3 offset = new Vector3(0f, -.5f, 0f);
+        RaycastHit2D left = Physics2D.Raycast(transform.position + offset, Vector2.left, .6f, LayerMask.GetMask("Map"));
+        RaycastHit2D right = Physics2D.Raycast(transform.position + offset, Vector2.right, .6f, LayerMask.GetMask("Map"));
+        Debug.DrawRay(transform.position + offset, Vector2.right * .6f);
+        Debug.DrawRay(transform.position + offset, Vector2.left * .6f);
         int value = 0;
         if (left.transform != null)
         {
@@ -351,17 +362,19 @@ public class Player : MonoBehaviour
 
     bool isOnWallTop(float side)
     {
-        Vector3 offset = new Vector3(0, -.3f, 0);
+        Vector3 offset = new Vector3(0, -.8f, 0);
         Vector2 direction = side == 1 ? Vector2.right : Vector2.left;
         RaycastHit2D ray = Physics2D.Raycast(transform.position + offset, direction, .6f, LayerMask.GetMask("Map"));
+        Debug.DrawRay(transform.position + offset, direction * .6f);
         return ray.transform != null;
     }
 
     bool isOnWallBottom(float side)
     {
-        Vector3 offset = new Vector3(0, -.5f, 0);
+        Vector3 offset = new Vector3(0, -1f, 0);
         Vector2 direction = side == 1 ? Vector2.right : Vector2.left;
         RaycastHit2D ray = Physics2D.Raycast(transform.position + offset, direction, .6f, LayerMask.GetMask("Map"));
+        Debug.DrawRay(transform.position + offset, direction * .6f);
         return ray.transform == null;
     }
 

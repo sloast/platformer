@@ -5,7 +5,9 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     Vector3 target;
+    Vector3 currPos;
     public float cameraSpeed = 5;
+    
 
     float shakeIntensity = 1f;
     float shakeDuration = 0f;
@@ -18,20 +20,24 @@ public class CameraController : MonoBehaviour
     
     void Update()
     {
-        if ((target - transform.position).magnitude > .01f){
+        if ((target - currPos).magnitude > .01f){
             Approach(target);
         }
         if (shakeDuration > 0f)
         {
             shakeDuration -= Time.deltaTime;
+            transform.position = currPos + shakeIntensity * Random.insideUnitSphere;
+        } else
+        {
+            transform.position = currPos;
         }
     }
 
     void Approach(Vector3 t)
     {
-        Vector3 pos = Vector3.Lerp(transform.position, target, cameraSpeed*Time.deltaTime);
+        Vector3 pos = Vector3.Lerp(currPos, target, cameraSpeed*Time.deltaTime);
         pos.z = -10f;
-        transform.position = pos;
+        currPos = pos;
     }
 
     public void SetTarget(Vector3 newTarget)
@@ -41,6 +47,7 @@ public class CameraController : MonoBehaviour
 
     public void ShakeScreen(float speed, float duration)
     {
-
+        shakeIntensity = speed;
+        shakeDuration = duration;
     }
 }

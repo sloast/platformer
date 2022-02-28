@@ -30,4 +30,6 @@ public class GameController : MonoBehaviour
         camera.SetTarget(levels[current_level].gameObject.transform.position);
         player.SetStartCoordinates(levels[current_level].startPos);
     }
+
+
 }
