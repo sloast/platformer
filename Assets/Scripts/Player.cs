@@ -33,6 +33,7 @@ public class Player : MonoBehaviour
     bool canMoveHorizontal = true;
     bool moveLocked = false;
     bool noGravity = false;
+    float dashActiveBuffer = 0f;
     public bool died = false;
     Vector2 startCoordinates;
     Rigidbody2D rb;
@@ -80,6 +81,9 @@ public class Player : MonoBehaviour
     void UpdateAnimator()
     {
         ani.SetFloat("x_speed", Mathf.Abs(rb.velocity.x));
+        ani.SetFloat("y_vel", rb.velocity.y);
+        ani.SetBool("onGround", onGround);
+        
     }
 
     void SetDirection()
@@ -179,6 +183,14 @@ public class Player : MonoBehaviour
                 jumpBuffer -= Time.fixedDeltaTime;
             }
         }
+        if (dashActiveBuffer > 0)
+        {
+            dashActiveBuffer -= Time.fixedDeltaTime;
+            if (dashActiveBuffer <= 0)
+            {
+                ani.SetBool("isDashing", false);
+            }
+        }
     }
 
     void ResetBuffer()
@@ -273,6 +285,8 @@ public class Player : MonoBehaviour
         rb.velocity = dashDirection * dashSpeed;
         
         Invoke("ResetAbilitiesIfGrounded", .5f); // Allows it to reset without the player needing to jump
+        ani.SetBool("isDashing", true);
+        dashActiveBuffer = .5f;
     }
 
     // Controls gravity
