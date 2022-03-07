@@ -12,6 +12,9 @@ public class CameraController : MonoBehaviour
     float shakeIntensity = 1f;
     float shakeDuration = 0f;
 
+    float decreasingShakeDuration = 0f;
+    float shakeMult = 1f;
+
     void Start()
     {
         target = new Vector3(-.04f, .45f, -10f);
@@ -27,8 +30,11 @@ public class CameraController : MonoBehaviour
         {
             shakeDuration -= Time.deltaTime;
             transform.position = currPos + shakeIntensity * Random.insideUnitSphere;
-        } else
+        } else if (decreasingShakeDuration > 0f)
         {
+            decreasingShakeDuration -= Time.deltaTime;
+            transform.position = currPos + decreasingShakeDuration * shakeMult * Random.insideUnitSphere;
+        } else {
             transform.position = currPos;
         }
     }
@@ -49,5 +55,11 @@ public class CameraController : MonoBehaviour
     {
         shakeIntensity = speed;
         shakeDuration = duration;
+    }
+
+    public void ShakeScreenDecreasing(float duration, float mult)
+    {
+        decreasingShakeDuration = duration;
+        shakeMult = mult;
     }
 }

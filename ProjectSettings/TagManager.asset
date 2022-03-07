@@ -7,6 +7,7 @@ TagManager:
   - Map
   - Obstacles
   - TransitionTrigger
+  - PauseMenu
   layers:
   - Default
   - TransparentFX

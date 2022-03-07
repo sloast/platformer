@@ -40,6 +40,7 @@ public class Player : MonoBehaviour
     SpriteRenderer rend;
     GameController gc;
     Animator ani;
+    CameraController cam;
 
 
     void Start()
@@ -50,6 +51,7 @@ public class Player : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         gc = GameObject.FindWithTag("GameController").GetComponent<GameController>();
         ani = GetComponent<Animator>();
+        cam = GameObject.FindWithTag("MainCamera").GetComponent<CameraController>();
     }
 
     private void Update()
@@ -287,6 +289,7 @@ public class Player : MonoBehaviour
         Invoke("ResetAbilitiesIfGrounded", .5f); // Allows it to reset without the player needing to jump
         ani.SetBool("isDashing", true);
         dashActiveBuffer = .5f;
+        cam.ShakeScreenDecreasing(.2f, .5f);
     }
 
     // Controls gravity
