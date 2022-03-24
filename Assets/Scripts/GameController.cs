@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
-public class GameController : MonoBehaviour
+public class GameController : MonoBehaviour, GenericController
 {
     Player player;
     new CameraController camera;
+    public Animator transitionScreen;
     public int current_level = 0;
     List<LevelData> levels = new List<LevelData>();
     [SerializeField]
@@ -14,6 +16,7 @@ public class GameController : MonoBehaviour
     bool paused = false;
     [SerializeField]
     Button primaryButton = null;
+    bool animationEnded = false;
 
     void Start()
     {
@@ -22,6 +25,7 @@ public class GameController : MonoBehaviour
         levels.Add(GameObject.Find("0").GetComponent<LevelData>());
         levels.Add(GameObject.Find("1").GetComponent<LevelData>());
         //pauseMenu = GameObject.FindWithTag("PauseMenu");
+        SetCursorVisible(false);
     }
 
     
@@ -46,10 +50,48 @@ public class GameController : MonoBehaviour
         pauseMenu.SetActive(value);
         paused = value;
         if (paused) {
+            SetCursorVisible(true);
             primaryButton.Select();
+        } else
+        {
+            SetCursorVisible(false);
         }
     }
 
+    public void StartExitAnimation()
+    {
+        StartCoroutine("ExitCoroutine");
+    }
+    IEnumerator ExitCoroutine()
+    {
+        transitionScreen.SetTrigger("StartTransition");
+        yield return new WaitUntil(() => animationEnded);
+        ExitGame();
+    }
+    public void ExitGame()
+    {
+        Time.timeScale = 1f;
+        SetCursorVisible(true);
+        SceneManager.LoadScene(0);
+    }
 
+    public void StartGame() { } // Not used
+    public void GoToLevel(int level) { }
 
+    public void ContinueAction()
+    {
+        animationEnded = true;
+    }
+
+    void SetCursorVisible(bool visible)
+    {
+        if (visible)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        } else {
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
 }
